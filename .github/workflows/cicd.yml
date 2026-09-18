@@ -11,6 +11,8 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Note: If you saved your AWS secrets inside a GitHub Environment rather than repository secrets, uncomment the line below and set your environment name:
+    # environment: production
 
     steps:
       - name: Checkout Code
