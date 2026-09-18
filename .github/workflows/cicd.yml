@@ -65,11 +65,28 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Verify ECS resources
+        run: |
+          echo "AWS identity:"
+          aws sts get-caller-identity
+
+          echo "Checking cluster:"
+          aws ecs describe-clusters \
+            --clusters "${{ vars.ECS_CLUSTER }}" \
+            --region "${{ vars.AWS_REGION }}"
+
+          echo "Checking service:"
+          aws ecs describe-services \
+            --cluster "${{ vars.ECS_CLUSTER }}" \
+            --services "${{ vars.ECS_SERVICE }}" \
+            --region "${{ vars.AWS_REGION }}"
 
       - name: Update ECS Service
         run: |
           aws ecs update-service \
-            --cluster ecs-cluster \
-            --service nginx-service \
-            --force-new-deployment
+            --cluster "${{ vars.ECS_CLUSTER }}" \
+            --service "${{ vars.ECS_SERVICE }}" \
+            --force-new-deployment \
+            --region "${{ vars.AWS_REGION }}"
