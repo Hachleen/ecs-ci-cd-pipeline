@@ -6,7 +6,6 @@ on:
       - main
 
 permissions:
-  id-token: write
   contents: read
 
 jobs:
@@ -20,10 +19,9 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::443496862989:role/ecs-execution-role
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
-        env:
-          ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
       - name: Login to Amazon ECR
         id: login-ecr
