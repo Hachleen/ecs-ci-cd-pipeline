@@ -43,12 +43,14 @@ jobs:
         run: |
           docker push \
           ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:${{ github.sha }}
-
   deploy:
     runs-on: ubuntu-latest
     needs: build
 
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -59,10 +61,39 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Deploy new image to ECS
+      - name: Prepare updated task definition
+        id: taskdef
+        run: |
+          NEW_IMAGE="${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:${{ github.sha }}"
+          echo "Using image: $NEW_IMAGE"
+
+          TASK_DEF=$(aws ecs describe-task-definition \
+            --task-definition "${{ vars.ECS_TASK_DEFINITION }}" \
+            --region "$AWS_REGION")
+
+          NEW_TASK_DEF=$(echo "$TASK_DEF" | jq \
+            --arg IMAGE "$NEW_IMAGE" \
+            '.taskDefinition | .containerDefinitions[0].image = $IMAGE')
+
+          echo "$NEW_TASK_DEF" > new-task-def.json
+
+      - name: Register new task definition revision
+        id: register
+        run: |
+          REVISION=$(aws ecs register-task-definition \
+            --cli-input-json file://new-task-def.json \
+            --region "$AWS_REGION" \=
+            --query 'taskDefinition.taskDefinitionArn' \
+            --output text)
+
+          echo "revision=$REVISION" >> $GITHUB_OUTPUT
+
+      - name: Deploy new revision to ECS
         run: |
           aws ecs update-service \
             --cluster "${{ vars.ECS_CLUSTER }}" \
             --service "${{ vars.ECS_SERVICE }}" \
+            --task-definition "${{ steps.register.outputs.revision }}" \
             --force-new-deployment \
             --region "$AWS_REGION"
+
