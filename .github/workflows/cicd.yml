@@ -82,7 +82,7 @@ jobs:
         run: |
           REVISION=$(aws ecs register-task-definition \
             --cli-input-json file://new-task-def.json \
-            --region "$AWS_REGION" \=
+            --region "$AWS_REGION" \
             --query 'taskDefinition.taskDefinitionArn' \
             --output text)
 
