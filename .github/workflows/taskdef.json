@@ -1,14 +1,13 @@
 {
-  "family": "ecs-repo-task",
+  "family": "nginx",
   "networkMode": "awsvpc",
   "requiresCompatibilities": ["FARGATE"],
   "cpu": "256",
   "memory": "512",
-  "executionRoleArn": "arn:aws:iam::443496862989:role/ecsTaskExecutionRole",
-  "taskRoleArn": "arn:aws:iam::443496862989:role/ecsTaskRole",
+  "executionRoleArn": "arn:aws:iam::443496862989:role/ecs-execution-role",
   "containerDefinitions": [
     {
-      "name": "ecs-repo",
+      "name": "nginx",
       "image": "443496862989.dkr.ecr.us-east-1.amazonaws.com/ecs-repo:latest",
       "essential": true,
       "portMappings": [
